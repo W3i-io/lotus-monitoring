@@ -27,10 +27,10 @@ def parse_log(log, miner_id, prom_file):
         (f'lotus_miner_base_delta{{miner="{miner_id}"}}', r'([^,]*)', 4),
     ]
     
-    for metric_name, pattern, group_index in patterns:
-        match = re.search(pattern, log)
-        if match:
-            value = match.group(group_index)
+    for metric_name, pattern, index in patterns:
+        match = re.split(pattern, log)
+        if len(match) > index:
+            value = match[index]
             write_prometheus_metric(metric_name, value, prom_file)
     
     eligible = re.search(r'([^,]*)', log).group(11)
