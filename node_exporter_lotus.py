@@ -33,7 +33,7 @@ def parse_log(log, miner_id, prom_file):
             value = match[index]
             write_prometheus_metric(metric_name, value, prom_file)
     
-    eligible = re.search(r'([^,]*)', log).group(11)
+    eligible = re.split(r'[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*)', log)[1].strip()
     eligible_value = 1 if eligible == "true" else 0
     write_prometheus_metric(f'lotus_miner_eligible{{miner="{miner_id}"}}', eligible_value, prom_file)
 
