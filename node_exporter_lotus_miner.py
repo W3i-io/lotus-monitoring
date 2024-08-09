@@ -181,32 +181,33 @@ def main(config_file):
     disk_metrics = gather_disk_metrics(disk_paths, disk_labels)
     append_disk_metrics_to_file(prom_file_path, miner_id, disk_metrics)
 
-    subprocess.run("lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
+    subprocess.run("/usr/local/bin//usr/local/bin/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
     active_sectors, faulty_sectors = process_deadlines("./deadlines")
     write_deadlines_to_file(prom_file_path, miner_id, active_sectors, faulty_sectors)
 
     for metric_name in ['store', 'seal']:
-        subprocess.run(f"lotus-miner storage list | grep -B 2 'Use: {metric_name.capitalize()}' | grep '/' > ./storage", shell=True)
+        subprocess.run(f"/usr/local/bin/lotus-miner storage list | grep -B 2 'Use: {metric_name.capitalize()}' | grep '/' > ./storage", shell=True)
         used_storage, storage_space = calculate_storage_metrics("./storage")
         write_storage_metrics_to_file(prom_file_path, miner_id, metric_name, used_storage, storage_space)
 
-    proving_info = subprocess.getoutput("lotus-miner proving info | grep 'Sectors'")
+    proving_info = subprocess.getoutput("/usr/local/bin/lotus-miner proving info | grep 'Sectors'")
     in_proving_window = process_proving_window(proving_info)
     write_proving_window_to_file(prom_file_path, miner_id, in_proving_window)
 
-    info = subprocess.getoutput("lotus-miner info")
+    info = subprocess.getoutput("/usr/local/bin/lotus-miner info")
     balance_metrics = gather_balance_metrics(info)
     write_balance_metrics_to_file(prom_file_path, miner_id, balance_metrics)
 
-    wallets = subprocess.getoutput("lotus-miner actor control list")
+    wallets = subprocess.getoutput("/usr/local/bin/lotus-miner actor control list")
     wallet_balances = gather_wallet_balances(wallets)
     write_wallet_balances_to_file(prom_file_path, miner_id, wallet_balances)
 
-    workers = subprocess.getoutput("lotus-miner sealing workers | grep Worker")
+    workers = subprocess.getoutput("/usr/local/bin/lotus-miner sealing workers | grep Worker")
     worker_metrics = gather_worker_metrics(workers)
     write_worker_metrics_to_file(prom_file_path, miner_id, worker_metrics)
 
     os.rename(prom_file_path, f"{path_node_exporter}lotus.{miner_id}.prom")
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
