@@ -56,13 +56,13 @@ def main(config_file):
         with open(f"{path_node_exporter}lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
 
-    subprocess.run("lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines", shell=True)
+    subprocess.run("lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
 
     total_active_sectors = 0
     total_faulty_sectors = 0
     total_proving_epochs = 0
 
-    with open("/home/vit/deadlines", 'r') as file:
+    with open("./deadlines", 'r') as file:
         for line in file:
             active_sectors = int(line.split()[3])
             faulty_sectors = int(line.split()[4].strip("()"))
@@ -77,9 +77,9 @@ def main(config_file):
     total_used_storage = 0
     total_storage_space = 0
 
-    subprocess.run("lotus-miner storage list | grep -B 2 'Use: Store' | grep '/' > /home/vit/storage", shell=True)
+    subprocess.run("lotus-miner storage list | grep -B 2 'Use: Store' | grep '/' > ./storage", shell=True)
 
-    with open("/home/vit/storage", 'r') as file:
+    with open("./storage", 'r') as file:
         for line in file:
             used_space = float(line.split(']')[1].split()[0])
             space = float(line.split(']')[1].split()[1].split('/')[1])
@@ -110,9 +110,9 @@ def main(config_file):
     total_used_storage = 0
     total_storage_space = 0
 
-    subprocess.run("lotus-miner storage list | grep -B 2 'Use: Seal' | grep '/' > /home/vit/storage", shell=True)
+    subprocess.run("lotus-miner storage list | grep -B 2 'Use: Seal' | grep '/' > ./storage", shell=True)
 
-    with open("/home/vit/storage", 'r') as file:
+    with open("./storage", 'r') as file:
         for line in file:
             used_space = float(line.split(']')[1].split()[0])
             space = float(line.split(']')[1].split()[1].split('/')[1])
