@@ -32,7 +32,7 @@ def main(config_file):
 
     with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'w') as f:
         miner_qap=log.split("\"")[23]
-        f.write(f'lotus_miner_qap{{miner="{miner_id}"}} {network_qap}\n')
+        f.write(f'lotus_miner_qap{{miner="{miner_id}"}} {miner_qap}\n')
         network_qap=log.split("\"")[19]
         f.write(f'lotus_network_qap{{miner="{miner_id}"}} {network_qap}\n')
         base_epoch=log.split(",")[2].split()[1]
