@@ -19,6 +19,15 @@ def main(config_file):
     miner_id = config['DEFAULT']['MINER_ID']
     miner_log_file = config['DEFAULT']['MINER_LOG_FILE']
 
+    # Get disk paths and labels from config
+    disk_paths = config['DEFAULT']['DISK_PATHS'].split(':')
+    disk_labels = config['DEFAULT']['DISK_LABELS'].split(':')
+
+    # Ensure that disk_paths and disk_labels have the same length
+    if len(disk_paths) != len(disk_labels):
+        print("Error: DISK_PATHS and DISK_LABELS must have the same number of elements.")
+        sys.exit(1)
+
     log = subprocess.getoutput("tail -n 500 {miner_log_file} | grep 'completed mineOne' | tail -n 1")
 
     with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'w') as f:
@@ -38,21 +47,12 @@ def main(config_file):
         with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_eligible{{miner="{miner_id}"}} 0\n')
 
-    data01 = subprocess.getoutput("df | grep '/dev/mapper/mpathf-part1'").split()[3]
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write(f'lotus_miner_data01{{miner="{miner_id}"}} {data01}\n')
 
-    data05 = subprocess.getoutput("df | grep '/dev/mapper/mpathj-part1'").split()[3]
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write(f'lotus_miner_data05{{miner="{miner_id}"}} {data05}\n')
-
-    data06 = subprocess.getoutput("df | grep '/dev/mapper/mpathk-part1'").split()[3]
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write(f'lotus_miner_data06{{miner="{miner_id}"}} {data06}\n')
-
-    data07 = subprocess.getoutput("df | grep '/dev/mapper/mpathl-part1'").split()[3]
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write(f'lotus_miner_data07{{miner="{miner_id}"}} {data07}\n')
+    # Iterate over disk paths and labels
+    for path, label in zip(disk_paths, disk_labels):
+        data = subprocess.getoutput(f"df | grep '{path}'").split()[3]
+        with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+            f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
 
     subprocess.run("/home/vit/lotus/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines", shell=True)
 
