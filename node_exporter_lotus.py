@@ -28,7 +28,7 @@ def main(config_file):
         print("Error: DISK_PATHS and DISK_LABELS must have the same number of elements.")
         sys.exit(1)
 
-    log = subprocess.getoutput("tail -n 500 {miner_log_file} | grep 'completed mineOne' | tail -n 1")
+    log = subprocess.getoutput(f"tail -n 500 {miner_log_file} | grep 'completed mineOne' | tail -n 1")
 
     with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'w') as f:
         miner_qap=log.split("\"")[23]
