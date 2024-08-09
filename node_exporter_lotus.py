@@ -11,34 +11,34 @@ os.environ['MARKETS_API_INFO'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvd
 log = subprocess.getoutput("tail -n 500 ~/miner202*.log | grep 'completed mineOne' | tail -n 1")
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'w') as f:
-    f.write(f"lotus_miner_qap{{miner=\"f01896422\"}} {log.split('\"')[23]}\n")
-    f.write(f"lotus_network_qap{{miner=\"f01896422\"}} {log.split('\"')[19]}\n")
-    f.write(f"lotus_miner_base_epoch{{miner=\"f01896422\"}} {log.split(',')[2].split()[1]}\n")
-    f.write(f"lotus_miner_base_delta{{miner=\"f01896422\"}} {log.split(',')[3].split()[1]}\n")
+    f.write(f'lotus_miner_qap{{miner="f01896422"}} {log.split("\"")[23]}\n')
+    f.write(f'lotus_network_qap{{miner="f01896422"}} {log.split("\"")[19]}\n')
+    f.write(f'lotus_miner_base_epoch{{miner="f01896422"}} {log.split(",")[2].split()[1]}\n')
+    f.write(f'lotus_miner_base_delta{{miner="f01896422"}} {log.split(",")[3].split()[1]}\n')
 
 eligible = log.split(',')[10].split()[1]
 if eligible == "true":
     with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write("lotus_miner_eligible{miner=\"f01896422\"} 1\n")
+        f.write('lotus_miner_eligible{miner="f01896422"} 1\n')
 else:
     with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write("lotus_miner_eligible{miner=\"f01896422\"} 0\n")
+        f.write('lotus_miner_eligible{miner="f01896422"} 0\n')
 
 data01 = subprocess.getoutput("df | grep '/dev/mapper/mpathf-part1'").split()[3]
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_data01{{miner=\"f01896422\"}} {data01}\n")
+    f.write(f'lotus_miner_data01{{miner="f01896422"}} {data01}\n')
 
 data05 = subprocess.getoutput("df | grep '/dev/mapper/mpathj-part1'").split()[3]
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_data05{{miner=\"f01896422\"}} {data05}\n")
+    f.write(f'lotus_miner_data05{{miner="f01896422"}} {data05}\n')
 
 data06 = subprocess.getoutput("df | grep '/dev/mapper/mpathk-part1'").split()[3]
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_data06{{miner=\"f01896422\"}} {data06}\n")
+    f.write(f'lotus_miner_data06{{miner="f01896422"}} {data06}\n')
 
 data07 = subprocess.getoutput("df | grep '/dev/mapper/mpathl-part1'").split()[3]
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_data07{{miner=\"f01896422\"}} {data07}\n")
+    f.write(f'lotus_miner_data07{{miner="f01896422"}} {data07}\n')
 
 subprocess.run("/home/vit/lotus/lotus-miner proving deadlines | grep -v ' 0 (0)|Miner|deadline' > /home/vit/deadlines", shell=True)
 
@@ -55,8 +55,8 @@ with open("/home/vit/deadlines", 'r') as file:
         total_proving_epochs += 60
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_active_sectors{{miner=\"f01896422\"}} {total_active_sectors}\n")
-    f.write(f"lotus_miner_faulty_sectors{{miner=\"f01896422\"}} {total_faulty_sectors}\n")
+    f.write(f'lotus_miner_active_sectors{{miner="f01896422"}} {total_active_sectors}\n')
+    f.write(f'lotus_miner_faulty_sectors{{miner="f01896422"}} {total_faulty_sectors}\n')
 
 total_used_storage = 0
 total_storage_space = 0
@@ -88,8 +88,8 @@ with open("/home/vit/storage", 'r') as file:
         total_storage_space += space
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_store_space{{miner=\"f01896422\"}} {total_storage_space}\n")
-    f.write(f"lotus_miner_store_used{{miner=\"f01896422\"}} {total_used_storage}\n")
+    f.write(f'lotus_miner_store_space{{miner="f01896422"}} {total_storage_space}\n')
+    f.write(f'lotus_miner_store_used{{miner="f01896422"}} {total_used_storage}\n')
 
 total_used_storage = 0
 total_storage_space = 0
@@ -121,18 +121,18 @@ with open("/home/vit/storage", 'r') as file:
         total_storage_space += space
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_seal_space{{miner=\"f01896422\"}} {total_storage_space}\n")
-    f.write(f"lotus_miner_seal_used{{miner=\"f01896422\"}} {total_used_storage}\n")
+    f.write(f'lotus_miner_seal_space{{miner="f01896422"}} {total_storage_space}\n')
+    f.write(f'lotus_miner_seal_used{{miner="f01896422"}} {total_used_storage}\n')
 
 proving_info = subprocess.getoutput("/home/vit/lotus/lotus-miner proving info | grep 'Sectors'")
 deadline_sectors = int(proving_info.split()[2])
 
 if deadline_sectors > 0:
     with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write("lotus_miner_proving_window{miner=\"f01896422\"} 1\n")
+        f.write('lotus_miner_proving_window{miner="f01896422"} 1\n')
 else:
     with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-        f.write("lotus_miner_proving_window{miner=\"f01896422\"} 0\n")
+        f.write('lotus_miner_proving_window{miner="f01896422"} 0\n')
 
 info = subprocess.getoutput("/home/vit/lotus/lotus-miner info")
 
@@ -173,12 +173,12 @@ if miner_available > 0:
         miner_available /= 1000
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_precommit_balance{{miner=\"f01896422\"}} {precommit}\n")
-    f.write(f"lotus_miner_pledge_balance{{miner=\"f01896422\"}} {pledge}\n")
-    f.write(f"lotus_miner_vesting_balance{{miner=\"f01896422\"}} {vesting}\n")
-    f.write(f"lotus_miner_market_locked_balance{{miner=\"f01896422\"}} {market_locked}\n")
-    f.write(f"lotus_miner_market_available_balance{{miner=\"f01896422\"}} {market_available}\n")
-    f.write(f"lotus_miner_miner_available_balance{{miner=\"f01896422\"}} {miner_available}\n")
+    f.write(f'lotus_miner_precommit_balance{{miner="f01896422"}} {precommit}\n')
+    f.write(f'lotus_miner_pledge_balance{{miner="f01896422"}} {pledge}\n')
+    f.write(f'lotus_miner_vesting_balance{{miner="f01896422"}} {vesting}\n')
+    f.write(f'lotus_miner_market_locked_balance{{miner="f01896422"}} {market_locked}\n')
+    f.write(f'lotus_miner_market_available_balance{{miner="f01896422"}} {market_available}\n')
+    f.write(f'lotus_miner_miner_available_balance{{miner="f01896422"}} {miner_available}\n')
 
 computeprooffailed = 0
 addpiecefailed = 0
@@ -275,43 +275,43 @@ if "Total:" in info:
     total = int(info.split('Total:')[1].split()[0])
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_sector_status_removed{{miner=\"f01896422\"}} {removed}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"PC1\"}} {precommit1}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"PC2\"}} {precommit2}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"C2\"}} {committing}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"WS\"}} {waitseed}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"WD\"}} {waitdeals}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"AP\"}} {addpiece}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"SCA\"}} {submitcommitaggregate}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"PCW\"}} {precommitwait}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"CAW\"}} {commitaggregatewait}\n")
-    f.write(f"lotus_miner_sector_status{{miner=\"f01896422\",status=\"FIN\"}} {commitfinalize}\n")
-    f.write(f"lotus_miner_sector_status_total{{miner=\"f01896422\"}} {total}\n")
+    f.write(f'lotus_miner_sector_status_removed{{miner="f01896422"}} {removed}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="PC1"}} {precommit1}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="PC2"}} {precommit2}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="C2"}} {committing}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="WS"}} {waitseed}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="WD"}} {waitdeals}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="AP"}} {addpiece}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="SCA"}} {submitcommitaggregate}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="PCW"}} {precommitwait}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="CAW"}} {commitaggregatewait}\n')
+    f.write(f'lotus_miner_sector_status{{miner="f01896422",status="FIN"}} {commitfinalize}\n')
+    f.write(f'lotus_miner_sector_status_total{{miner="f01896422"}} {total}\n')
 
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"CP\"}} {computeprooffailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"AP\"}} {addpiecefailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"COM\"}} {commitfailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"PCK\"}} {packingfailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"PC1\"}} {sealprecommit1failed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"PC2\"}} {sealprecommit2failed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"CF\"}} {commitfinalizedfailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"PC\"}} {precommitfailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"FIN\"}} {finalizedfailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"FF\"}} {faultedfinal}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"RM\"}} {removefailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"TER\"}} {terminatefailed}\n")
-    f.write(f"lotus_miner_sector_error{{miner=\"f01896422\",status=\"UNR\"}} {failedunrecoverable}\n")
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="CP"}} {computeprooffailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="AP"}} {addpiecefailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="COM"}} {commitfailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="PCK"}} {packingfailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="PC1"}} {sealprecommit1failed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="PC2"}} {sealprecommit2failed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="CF"}} {commitfinalizedfailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="PC"}} {precommitfailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="FIN"}} {finalizedfailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="FF"}} {faultedfinal}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="RM"}} {removefailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="TER"}} {terminatefailed}\n')
+    f.write(f'lotus_miner_sector_error{{miner="f01896422",status="UNR"}} {failedunrecoverable}\n')
 
 wallets = subprocess.getoutput("/home/vit/lotus/lotus-miner actor control list")
 
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_owner_balance{{miner=\"f01896422\"}} {wallets.split()[8]}\n")
-    f.write(f"lotus_miner_worker_balance{{miner=\"f01896422\"}} {wallets.split()[14]}\n")
-    f.write(f"lotus_miner_control0_balance{{miner=\"f01896422\"}} {wallets.split()[25]}\n")
+    f.write(f'lotus_miner_owner_balance{{miner="f01896422"}} {wallets.split()[8]}\n')
+    f.write(f'lotus_miner_worker_balance{{miner="f01896422"}} {wallets.split()[14]}\n')
+    f.write(f'lotus_miner_control0_balance{{miner="f01896422"}} {wallets.split()[25]}\n')
 
 workers = subprocess.getoutput("/home/vit/lotus/lotus-miner sealing workers | grep Worker")
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
-    f.write(f"lotus_miner_sealing_ap_worker{{miner=\"f01896422\"}} {workers.count('_AP')}\n")
-    f.write(f"lotus_miner_sealing_pc1_worker{{miner=\"f01896422\"}} {workers.count('_PC1')}\n")
-    f.write(f"lotus_miner_sealing_pc2_worker{{miner=\"f01896422\"}} {workers.count('_PC2')}\n")
-    f.write(f"lotus_miner_sealing_c2_worker{{miner=\"f01896422\"}} {workers.count('_C2')}\n")
+    f.write(f'lotus_miner_sealing_ap_worker{{miner="f01896422"}} {workers.count("_AP")}\n')
+    f.write(f'lotus_miner_sealing_pc1_worker{{miner="f01896422"}} {workers.count("_PC1")}\n')
+    f.write(f'lotus_miner_sealing_pc2_worker{{miner="f01896422"}} {workers.count("_PC2")}\n')
+    f.write(f'lotus_miner_sealing_c2_worker{{miner="f01896422"}} {workers.count("_C2")}\n')
