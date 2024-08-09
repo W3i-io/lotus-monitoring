@@ -157,7 +157,7 @@ def write_worker_metrics_to_file(path, miner_id, worker_metrics):
         for label, count in worker_metrics.items():
             f.write(f'lotus_miner_sealing_{label}{{miner="{miner_id}"}} {count}\n')
 
-def parse_info_for_jobs(info):
+def parse_info_for_jobs_errors(info):
     metrics = {
         "computeprooffailed": 0,
         "addpiecefailed": 0,
@@ -172,7 +172,24 @@ def parse_info_for_jobs(info):
         "faultedfinal": 0,
         "removefailed": 0,
         "terminatefailed": 0,
-        "removed": 0,
+        "removed": 0
+    }
+
+    for key in metrics:
+        if f"{key.capitalize()}:" in info:
+            metrics[key] = int(info.split(f"{key.capitalize()}:")[1].split()[0])
+
+    return metrics
+
+def write_jobs_errors_metrics_to_file(path, miner_id, metrics):
+    with open(path, 'a') as f:
+        f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["removed"]}\n')
+        for key in metrics:
+            if key != "removed":
+                f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="{key.upper()[:3]}"}} {metrics[key]}\n')
+
+def parse_info_for_jobs(info):
+    metrics = {
         "precommit1": 0,
         "precommit2": 0,
         "committing": 0,
@@ -194,11 +211,10 @@ def parse_info_for_jobs(info):
 
 def write_jobs_metrics_to_file(path, miner_id, metrics):
     with open(path, 'a') as f:
-        f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["removed"]}\n')
+        f.write(f'lotus_miner_sector_status_total{{miner="{miner_id}"}} {metrics["total"]}\n')
         for key in metrics:
-            if key != "removed":
-                f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="{key.upper()[:3]}"}} {metrics[key]}\n')
-
+            if key != "total":
+                f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="{key.upper()[:3]}"}} {metrics[key]}\n')
 
 def main(config_file):
     config = load_config(config_file)
@@ -248,6 +264,9 @@ def main(config_file):
     workers = subprocess.getoutput("/usr/local/bin/lotus-miner sealing workers | grep Worker")
     worker_metrics = gather_worker_metrics(workers)
     write_worker_metrics_to_file(prom_file_path, miner_id, worker_metrics)
+
+    jobs_error_metrics = parse_info_for_jobs_errors(info)
+    write_jobs_errors_metrics_to_file(prom_file_path, miner_id, jobs_error_metrics)
 
     jobs_metrics = parse_info_for_jobs(info)
     write_jobs_metrics_to_file(prom_file_path, miner_id, jobs_metrics)
