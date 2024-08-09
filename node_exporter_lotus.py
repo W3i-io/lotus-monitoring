@@ -118,12 +118,12 @@ def write_proving_window_to_file(path, miner_id, in_proving_window):
 
 def gather_balance_metrics(info):
     metrics = {}
-    metrics['precommit'] = float(currency_divider(float(info.split('PreCommit:')[1].split()[0],info.split('PreCommit:')[1].split()[1])))
-    metrics['pledge'] = float(currency_divider(float(info.split('Pledge:')[1].split()[0],info.split('Pledge:')[1].split()[1])))
-    metrics['vesting'] = float(currency_divider(float(info.split('Vesting:')[1].split()[0],info.split('Vesting:')[1].split()[1])))
-    metrics['market_locked'] = float(currency_divider(float(info.split('Locked:')[1].split()[0],info.split('Locked:')[1].split()[1])))
-    metrics['market_available'] = float(currency_divider(float(info.split('Available:')[2].split()[0],info.split('Available:')[2].split()[1])))
-    metrics['miner_available'] = float(currency_divider(float(info.split('Available:')[1].split()[0],info.split('Available:')[1].split()[1])))
+    metrics['precommit'] = float(currency_divider(float(info.split('PreCommit:')[1].split()[0]),info.split('PreCommit:')[1].split()[1]))
+    metrics['pledge'] = float(currency_divider(float(info.split('Pledge:')[1].split()[0]),info.split('Pledge:')[1].split()[1]))
+    metrics['vesting'] = float(currency_divider(float(info.split('Vesting:')[1].split()[0]),info.split('Vesting:')[1].split()[1]))
+    metrics['market_locked'] = float(currency_divider(float(info.split('Locked:')[1].split()[0]),info.split('Locked:')[1].split()[1]))
+    metrics['market_available'] = float(currency_divider(float(info.split('Available:')[2].split()[0]),info.split('Available:')[2].split()[1]))
+    metrics['miner_available'] = float(currency_divider(float(info.split('Available:')[1].split()[0]),info.split('Available:')[1].split()[1]))
 
     return metrics
 
