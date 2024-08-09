@@ -32,6 +32,7 @@ def main(config_file):
 
     with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'w') as f:
         miner_qap=log.split("\"")[23]
+        f.write(f'lotus_miner_qap{{miner="{miner_id}"}} {network_qap}\n')
         network_qap=log.split("\"")[19]
         f.write(f'lotus_network_qap{{miner="{miner_id}"}} {network_qap}\n')
         base_epoch=log.split(",")[2].split()[1]
@@ -54,7 +55,7 @@ def main(config_file):
         with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
 
-    subprocess.run("/home/vit/lotus/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines", shell=True)
+    subprocess.run("lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines", shell=True)
 
     total_active_sectors = 0
     total_faulty_sectors = 0
@@ -75,7 +76,7 @@ def main(config_file):
     total_used_storage = 0
     total_storage_space = 0
 
-    subprocess.run("/home/vit/lotus/lotus-miner storage list | grep -B 2 'Use: Store' | grep '/' > /home/vit/storage", shell=True)
+    subprocess.run("lotus-miner storage list | grep -B 2 'Use: Store' | grep '/' > /home/vit/storage", shell=True)
 
     with open("/home/vit/storage", 'r') as file:
         for line in file:
@@ -108,7 +109,7 @@ def main(config_file):
     total_used_storage = 0
     total_storage_space = 0
 
-    subprocess.run("/home/vit/lotus/lotus-miner storage list | grep -B 2 'Use: Seal' | grep '/' > /home/vit/storage", shell=True)
+    subprocess.run("lotus-miner storage list | grep -B 2 'Use: Seal' | grep '/' > /home/vit/storage", shell=True)
 
     with open("/home/vit/storage", 'r') as file:
         for line in file:
@@ -138,7 +139,7 @@ def main(config_file):
         f.write(f'lotus_miner_seal_space{{miner="{miner_id}"}} {total_storage_space}\n')
         f.write(f'lotus_miner_seal_used{{miner="{miner_id}"}} {total_used_storage}\n')
 
-    proving_info = subprocess.getoutput("/home/vit/lotus/lotus-miner proving info | grep 'Sectors'")
+    proving_info = subprocess.getoutput("lotus-miner proving info | grep 'Sectors'")
     deadline_sectors = int(proving_info.split()[2])
 
     if deadline_sectors > 0:
@@ -148,7 +149,7 @@ def main(config_file):
         with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_proving_window{{miner="{miner_id}"}} 0\n')
 
-    info = subprocess.getoutput("/home/vit/lotus/lotus-miner info")
+    info = subprocess.getoutput("lotus-miner info")
 
     precommit = float(info.split('PreCommit:')[1].split()[0])
     if precommit > 0:
@@ -196,14 +197,14 @@ def main(config_file):
 
     # Additional sector status and error handling omitted for brevity, but would follow the same pattern
 
-    wallets = subprocess.getoutput("/home/vit/lotus/lotus-miner actor control list")
+    wallets = subprocess.getoutput("lotus-miner actor control list")
 
     with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_owner_balance{{miner="{miner_id}"}} {wallets.split()[8]}\n')
         f.write(f'lotus_miner_worker_balance{{miner="{miner_id}"}} {wallets.split()[14]}\n')
         f.write(f'lotus_miner_control0_balance{{miner="{miner_id}"}} {wallets.split()[25]}\n')
 
-    workers = subprocess.getoutput("/home/vit/lotus/lotus-miner sealing workers | grep Worker")
+    workers = subprocess.getoutput("lotus-miner sealing workers | grep Worker")
     with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_sealing_ap_worker{{miner="{miner_id}"}} {workers.count("_AP")}\n')
         f.write(f'lotus_miner_sealing_pc1_worker{{miner="{miner_id}"}} {workers.count("_PC1")}\n')
