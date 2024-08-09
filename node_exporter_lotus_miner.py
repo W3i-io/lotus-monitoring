@@ -181,7 +181,7 @@ def main(config_file):
     disk_metrics = gather_disk_metrics(disk_paths, disk_labels)
     append_disk_metrics_to_file(prom_file_path, miner_id, disk_metrics)
 
-    subprocess.run("/usr/local/bin//usr/local/bin/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
+    subprocess.run("/usr/local/bin/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
     active_sectors, faulty_sectors = process_deadlines("./deadlines")
     write_deadlines_to_file(prom_file_path, miner_id, active_sectors, faulty_sectors)
 
