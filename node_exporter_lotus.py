@@ -3,6 +3,7 @@
 import os
 import subprocess
 
+
 os.environ['BOOST_API_INFO'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.9JA_H5KGJfQTAWVqRmC2MVqQ0spTBrXzg5ZNB1M42GM:/ip4/10.200.1.21/tcp/1288/http"
 os.environ['FULLNODE_API_INFO'] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXX0.Z-W88m1ogiMrY4TRjQx4cXBGPY_gp4qQj7H3pfJ0RiE:/ip4/10.200.2.11/tcp/1234/http"
 os.environ['LOTUS_MINER_PATH'] = "/home/vit/.lotusminer/"
@@ -332,3 +333,5 @@ with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as
     f.write(f'lotus_miner_sealing_pc1_worker{{miner="f01896422"}} {workers.count("_PC1")}' + r'\n')
     f.write(f'lotus_miner_sealing_pc2_worker{{miner="f01896422"}} {workers.count("_PC2")}' + r'\n')
     f.write(f'lotus_miner_sealing_c2_worker{{miner="f01896422"}} {workers.count("_C2")}' + r'\n')
+
+os.rename(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", f"/var/lib/prometheus/node-exporter/lotus.prom")
