@@ -30,7 +30,7 @@ def main(config_file):
 
     log = subprocess.getoutput(f"tail -n 500 {miner_log_file} | grep 'completed mineOne' | tail -n 1")
 
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'w') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'w') as f:
         miner_qap=log.split("\"")[23]
         network_qap=log.split("\"")[19]
         f.write(f'lotus_network_qap{{miner="{miner_id}"}} {network_qap}\n')
@@ -41,17 +41,17 @@ def main(config_file):
 
     eligible = log.split(',')[10].split()[1]
     if eligible == "true":
-        with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+        with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_eligible{{miner="{miner_id}"}} 1\n')
     else:
-        with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+        with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_eligible{{miner="{miner_id}"}} 0\n')
 
 
     # Iterate over disk paths and labels
     for path, label in zip(disk_paths, disk_labels):
         data = subprocess.getoutput(f"df | grep '{path}'").split()[3]
-        with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+        with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
 
     subprocess.run("/home/vit/lotus/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines", shell=True)
@@ -68,7 +68,7 @@ def main(config_file):
             total_faulty_sectors += faulty_sectors
             total_proving_epochs += 60
 
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_active_sectors{{miner="{miner_id}"}} {total_active_sectors}\n')
         f.write(f'lotus_miner_faulty_sectors{{miner="{miner_id}"}} {total_faulty_sectors}\n')
 
@@ -101,7 +101,7 @@ def main(config_file):
             total_used_storage += used_space
             total_storage_space += space
 
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_store_space{{miner="{miner_id}"}} {total_storage_space}\n')
         f.write(f'lotus_miner_store_used{{miner="{miner_id}"}} {total_used_storage}\n')
 
@@ -134,7 +134,7 @@ def main(config_file):
             total_used_storage += used_space
             total_storage_space += space
 
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_seal_space{{miner="{miner_id}"}} {total_storage_space}\n')
         f.write(f'lotus_miner_seal_used{{miner="{miner_id}"}} {total_used_storage}\n')
 
@@ -142,10 +142,10 @@ def main(config_file):
     deadline_sectors = int(proving_info.split()[2])
 
     if deadline_sectors > 0:
-        with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+        with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_proving_window{{miner="{miner_id}"}} 1\n')
     else:
-        with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+        with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
             f.write(f'lotus_miner_proving_window{{miner="{miner_id}"}} 0\n')
 
     info = subprocess.getoutput("/home/vit/lotus/lotus-miner info")
@@ -186,7 +186,7 @@ def main(config_file):
         if currency == "mFIL":
             miner_available /= 1000
 
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_precommit_balance{{miner="{miner_id}"}} {precommit}\n')
         f.write(f'lotus_miner_pledge_balance{{miner="{miner_id}"}} {pledge}\n')
         f.write(f'lotus_miner_vesting_balance{{miner="{miner_id}"}} {vesting}\n')
@@ -198,19 +198,19 @@ def main(config_file):
 
     wallets = subprocess.getoutput("/home/vit/lotus/lotus-miner actor control list")
 
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_owner_balance{{miner="{miner_id}"}} {wallets.split()[8]}\n')
         f.write(f'lotus_miner_worker_balance{{miner="{miner_id}"}} {wallets.split()[14]}\n')
         f.write(f'lotus_miner_control0_balance{{miner="{miner_id}"}} {wallets.split()[25]}\n')
 
     workers = subprocess.getoutput("/home/vit/lotus/lotus-miner sealing workers | grep Worker")
-    with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
+    with open(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", 'a') as f:
         f.write(f'lotus_miner_sealing_ap_worker{{miner="{miner_id}"}} {workers.count("_AP")}\n')
         f.write(f'lotus_miner_sealing_pc1_worker{{miner="{miner_id}"}} {workers.count("_PC1")}\n')
         f.write(f'lotus_miner_sealing_pc2_worker{{miner="{miner_id}"}} {workers.count("_PC2")}\n')
         f.write(f'lotus_miner_sealing_c2_worker{{miner="{miner_id}"}} {workers.count("_C2")}\n')
 
-    os.rename(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", f"/var/lib/prometheus/node-exporter/lotus.prom")
+    os.rename(f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom.{os.getpid()}", f"/var/lib/prometheus/node-exporter/lotus.{miner_id}.prom")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
