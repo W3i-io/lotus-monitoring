@@ -31,7 +31,7 @@ data07=$(df | grep "/dev/mapper/mpathl-part1" | awk '{print $4}')
 echo "lotus_miner_data07{miner=\"f01896422\"} "$data07 >> /var/lib/prometheus/node-exporter/lotus.prom.$$
 
 
-/home/vit/lotus/lotus-miner proving deadlines | grep -v ' 0 (0)\|Miner\|deadline' > /home/vit/deadlines
+/home/vit/lotus/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines
 
 
 

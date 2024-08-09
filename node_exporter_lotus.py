@@ -44,7 +44,7 @@ data07 = subprocess.getoutput("df | grep '/dev/mapper/mpathl-part1'").split()[3]
 with open(f"/var/lib/prometheus/node-exporter/lotus.prom.{os.getpid()}", 'a') as f:
     f.write(f'lotus_miner_data07{{miner="f01896422"}} {data07}' + r'\n')
 
-subprocess.run("/home/vit/lotus/lotus-miner proving deadlines | grep -v ' 0 (0)|Miner|deadline' > /home/vit/deadlines", shell=True)
+subprocess.run("/home/vit/lotus/lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > /home/vit/deadlines", shell=True)
 
 total_active_sectors = 0
 total_faulty_sectors = 0
@@ -52,6 +52,7 @@ total_proving_epochs = 0
 
 with open("/home/vit/deadlines", 'r') as file:
     for line in file:
+        
         active_sectors = int(line.split()[3])
         faulty_sectors = int(line.split()[4].strip("()"))
         total_active_sectors += active_sectors
