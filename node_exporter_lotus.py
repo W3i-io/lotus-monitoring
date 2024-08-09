@@ -5,148 +5,201 @@ import subprocess
 import configparser
 import sys
 
+def load_config(config_file):
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    return config['DEFAULT']
+
 def set_environment_variables(config):
-    """Set environment variables based on the configuration."""
-    os.environ['BOOST_API_INFO'] = config['DEFAULT']['BOOST_API_INFO']
-    os.environ['FULLNODE_API_INFO'] = config['DEFAULT']['FULLNODE_API_INFO']
-    os.environ['LOTUS_MINER_PATH'] = config['DEFAULT']['LOTUS_MINER_PATH']
-    os.environ['MARKETS_API_INFO'] = config['DEFAULT']['MARKETS_API_INFO']
+    os.environ['BOOST_API_INFO'] = config['BOOST_API_INFO']
+    os.environ['FULLNODE_API_INFO'] = config['FULLNODE_API_INFO']
+    os.environ['LOTUS_MINER_PATH'] = config['LOTUS_MINER_PATH']
+    os.environ['MARKETS_API_INFO'] = config['MARKETS_API_INFO']
 
-def parse_log_file(log_file):
-    """Extract relevant metrics from the miner log file."""
-    log = subprocess.getoutput(f"tail -n 500 {log_file} | grep 'completed mineOne' | tail -n 1")
-    miner_qap = log.split("\"")[23]
-    network_qap = log.split("\"")[19]
-    base_epoch = log.split(",")[2].split()[1]
-    base_delta = log.split(",")[3].split()[1]
-    eligible = log.split(',')[10].split()[1]
-    return miner_qap, network_qap, base_epoch, base_delta, eligible
+def parse_log_for_metrics(log):
+    return {
+        "miner_qap": log.split("\"")[23],
+        "network_qap": log.split("\"")[19],
+        "base_epoch": log.split(",")[2].split()[1],
+        "base_delta": log.split(",")[3].split()[1],
+        "eligible": log.split(',')[10].split()[1] == "true"
+    }
 
-def write_prometheus_metrics(file_path, miner_id, metrics):
-    """Write the extracted metrics to the Prometheus file."""
-    with open(file_path, 'a') as f:
-        for key, value in metrics.items():
-            f.write(f'{key}{{miner="{miner_id}"}} {value}\n')
+def write_metrics_to_file(path, miner_id, metrics):
+    with open(path, 'w') as f:
+        f.write(f'lotus_miner_qap{{miner="{miner_id}"}} {metrics["miner_qap"]}\n')
+        f.write(f'lotus_network_qap{{miner="{miner_id}"}} {metrics["network_qap"]}\n')
+        f.write(f'lotus_miner_base_epoch{{miner="{miner_id}"}} {metrics["base_epoch"]}\n')
+        f.write(f'lotus_miner_base_delta{{miner="{miner_id}"}} {metrics["base_delta"]}\n')
+        f.write(f'lotus_miner_eligible{{miner="{miner_id}"}} {1 if metrics["eligible"] else 0}\n')
 
-def gather_disk_statistics(disk_paths, disk_labels):
-    """Gather disk statistics for each path and label."""
+def gather_disk_metrics(disk_paths, disk_labels):
     metrics = {}
     for path, label in zip(disk_paths, disk_labels):
         data = subprocess.getoutput(f"df | grep '{path}'").split()[3]
-        metrics[f'lotus_miner_{label}'] = data
+        metrics[label] = data
     return metrics
 
-def parse_deadlines():
-    """Parse the deadlines file and calculate active and faulty sectors."""
-    subprocess.run("lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
-    
-    total_active_sectors, total_faulty_sectors = 0, 0
-    
-    with open("./deadlines", 'r') as file:
+def append_disk_metrics_to_file(path, miner_id, disk_metrics):
+    with open(path, 'a') as f:
+        for label, data in disk_metrics.items():
+            f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
+
+def process_deadlines(file_path):
+    total_active_sectors = 0
+    total_faulty_sectors = 0
+
+    with open(file_path, 'r') as file:
         for line in file:
             active_sectors = int(line.split()[3])
             faulty_sectors = int(line.split()[4].strip("()"))
             total_active_sectors += active_sectors
             total_faulty_sectors += faulty_sectors
-    
+
     return total_active_sectors, total_faulty_sectors
 
-def parse_storage_statistics(storage_type):
-    """Parse storage statistics for given storage type ('Store' or 'Seal')."""
-    subprocess.run(f"lotus-miner storage list | grep -B 2 'Use: {storage_type}' | grep '/' > ./storage", shell=True)
-    
-    total_used_storage, total_storage_space = 0, 0
-    
-    with open("./storage", 'r') as file:
+def write_deadlines_to_file(path, miner_id, active_sectors, faulty_sectors):
+    with open(path, 'a') as f:
+        f.write(f'lotus_miner_active_sectors{{miner="{miner_id}"}} {active_sectors}\n')
+        f.write(f'lotus_miner_faulty_sectors{{miner="{miner_id}"}} {faulty_sectors}\n')
+
+def calculate_storage_metrics(storage_file):
+    total_used_storage = 0
+    total_storage_space = 0
+
+    with open(storage_file, 'r') as file:
         for line in file:
             used_space = float(line.split(']')[1].split()[0])
             space = float(line.split(']')[1].split()[1].split('/')[1])
             unit = line.split(']')[1].split()[1].split('/')[0]
+
+            if unit == "GiB":
+                used_space *= 1073741824
+            elif unit == "TiB":
+                used_space *= 1099511627776
+            else:
+                used_space *= 1125899906842624
+
             total_unit = line.split()[4]
-            
-            used_space *= get_unit_multiplier(unit)
-            space *= get_unit_multiplier(total_unit)
-            
+            if total_unit == "GiB":
+                space *= 1073741824
+            elif total_unit == "TiB":
+                space *= 1099511627776
+            else:
+                space *= 1125899906842624
+
             total_used_storage += used_space
             total_storage_space += space
-    
-    return total_storage_space, total_used_storage
 
-def get_unit_multiplier(unit):
-    """Get the multiplier for storage units."""
-    if unit == "GiB":
-        return 1073741824
-    elif unit == "TiB":
-        return 1099511627776
-    else:
-        return 1125899906842624
+    return total_used_storage, total_storage_space
+
+def write_storage_metrics_to_file(path, miner_id, metric_name, used_storage, storage_space):
+    with open(path, 'a') as f:
+        f.write(f'lotus_miner_{metric_name}_space{{miner="{miner_id}"}} {storage_space}\n')
+        f.write(f'lotus_miner_{metric_name}_used{{miner="{miner_id}"}} {used_storage}\n')
+
+def process_proving_window(proving_info):
+    deadline_sectors = int(proving_info.split()[2])
+    return deadline_sectors > 0
+
+def write_proving_window_to_file(path, miner_id, in_proving_window):
+    with open(path, 'a') as f:
+        f.write(f'lotus_miner_proving_window{{miner="{miner_id}"}} {1 if in_proving_window else 0}\n')
+
+def gather_balance_metrics(info):
+    metrics = {}
+    metrics['precommit'] = float(info.split('PreCommit:')[1].split()[0])
+    metrics['pledge'] = float(info.split('Pledge:')[1].split()[0])
+    metrics['vesting'] = float(info.split('Vesting:')[1].split()[0])
+    metrics['market_locked'] = float(info.split('Locked:')[1].split()[0])
+    metrics['market_available'] = float(info.split('Available:')[2].split()[0])
+    metrics['miner_available'] = float(info.split('Available:')[1].split()[0])
+
+    for key, value in metrics.items():
+        if value > 0 and info.split(f'{key.capitalize()}:')[1].split()[1] == "mFIL":
+            metrics[key] /= 1000
+
+    return metrics
+
+def write_balance_metrics_to_file(path, miner_id, metrics):
+    with open(path, 'a') as f:
+        for key, value in metrics.items():
+            f.write(f'lotus_miner_{key}_balance{{miner="{miner_id}"}} {value}\n')
+
+def gather_wallet_balances(wallets):
+    return {
+        "owner_balance": wallets.split()[8],
+        "worker_balance": wallets.split()[14],
+        "control0_balance": wallets.split()[25]
+    }
+
+def write_wallet_balances_to_file(path, miner_id, wallet_balances):
+    with open(path, 'a') as f:
+        for label, balance in wallet_balances.items():
+            f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {balance}\n')
+
+def gather_worker_metrics(workers):
+    return {
+        "ap_worker": workers.count("_AP"),
+        "pc1_worker": workers.count("_PC1"),
+        "pc2_worker": workers.count("_PC2"),
+        "c2_worker": workers.count("_C2")
+    }
+
+def write_worker_metrics_to_file(path, miner_id, worker_metrics):
+    with open(path, 'a') as f:
+        for label, count in worker_metrics.items():
+            f.write(f'lotus_miner_sealing_{label}{{miner="{miner_id}"}} {count}\n')
 
 def main(config_file):
-    # Parse the configuration file
-    config = configparser.ConfigParser()
-    config.read(config_file)
-
-    # Set environment variables
+    config = load_config(config_file)
     set_environment_variables(config)
-    
-    miner_id = config['DEFAULT']['MINER_ID']
-    miner_log_file = config['DEFAULT']['MINER_LOG_FILE']
-    path_node_exporter = config['DEFAULT']['PATH_NODE_EXPORTER']
-    
-    # Get disk paths and labels from config
-    disk_paths = config['DEFAULT']['DISK_PATHS'].split(':')
-    disk_labels = config['DEFAULT']['DISK_LABELS'].split(':')
 
-    # Ensure that disk_paths and disk_labels have the same length
+    miner_id = config['MINER_ID']
+    miner_log_file = config['MINER_LOG_FILE']
+    path_node_exporter = config['PATH_NODE_EXPORTER']
+
+    disk_paths = config['DISK_PATHS'].split(':')
+    disk_labels = config['DISK_LABELS'].split(':')
+
     if len(disk_paths) != len(disk_labels):
         print("Error: DISK_PATHS and DISK_LABELS must have the same number of elements.")
         sys.exit(1)
 
-    prom_file_path = f"{path_node_exporter}lotus.{miner_id}.prom.{os.getpid()}"
+    log = subprocess.getoutput(f"tail -n 500 {miner_log_file} | grep 'completed mineOne' | tail -n 1")
 
-    # Parse log file for metrics
-    miner_qap, network_qap, base_epoch, base_delta, eligible = parse_log_file(miner_log_file)
-    
-    metrics = {
-        'lotus_miner_qap': miner_qap,
-        'lotus_network_qap': network_qap,
-        'lotus_miner_base_epoch': base_epoch,
-        'lotus_miner_base_delta': base_delta,
-        'lotus_miner_eligible': '1' if eligible == "true" else '0'
-    }
-    
-    # Write basic metrics to file
-    write_prometheus_metrics(prom_file_path, miner_id, metrics)
-    
-    # Gather disk statistics and write to file
-    disk_metrics = gather_disk_statistics(disk_paths, disk_labels)
-    write_prometheus_metrics(prom_file_path, miner_id, disk_metrics)
-    
-    # Parse deadlines and write sector metrics to file
-    total_active_sectors, total_faulty_sectors = parse_deadlines()
-    
-    sector_metrics = {
-        'lotus_miner_active_sectors': total_active_sectors,
-        'lotus_miner_faulty_sectors': total_faulty_sectors
-    }
-    
-    write_prometheus_metrics(prom_file_path, miner_id, sector_metrics)
-    
-    # Parse storage statistics for both Store and Seal and write to file
-    store_space, store_used = parse_storage_statistics('Store')
-    seal_space, seal_used = parse_storage_statistics('Seal')
-    
-    storage_metrics = {
-        'lotus_miner_store_space': store_space,
-        'lotus_miner_store_used': store_used,
-        'lotus_miner_seal_space': seal_space,
-        'lotus_miner_seal_used': seal_used
-    }
-    
-    write_prometheus_metrics(prom_file_path, miner_id, storage_metrics)
-    
-    # Additional processing (e.g., proving info, balance checks) would follow the same pattern
-    
+    metrics = parse_log_for_metrics(log)
+    prom_file_path = f"{path_node_exporter}lotus.{miner_id}.prom.{os.getpid()}"
+    write_metrics_to_file(prom_file_path, miner_id, metrics)
+
+    disk_metrics = gather_disk_metrics(disk_paths, disk_labels)
+    append_disk_metrics_to_file(prom_file_path, miner_id, disk_metrics)
+
+    subprocess.run("lotus-miner proving deadlines | grep -v -e 'Miner' -e 'deadline' > ./deadlines", shell=True)
+    active_sectors, faulty_sectors = process_deadlines("./deadlines")
+    write_deadlines_to_file(prom_file_path, miner_id, active_sectors, faulty_sectors)
+
+    for metric_name in ['store', 'seal']:
+        subprocess.run(f"lotus-miner storage list | grep -B 2 'Use: {metric_name.capitalize()}' | grep '/' > ./storage", shell=True)
+        used_storage, storage_space = calculate_storage_metrics("./storage")
+        write_storage_metrics_to_file(prom_file_path, miner_id, metric_name, used_storage, storage_space)
+
+    proving_info = subprocess.getoutput("lotus-miner proving info | grep 'Sectors'")
+    in_proving_window = process_proving_window(proving_info)
+    write_proving_window_to_file(prom_file_path, miner_id, in_proving_window)
+
+    info = subprocess.getoutput("lotus-miner info")
+    balance_metrics = gather_balance_metrics(info)
+    write_balance_metrics_to_file(prom_file_path, miner_id, balance_metrics)
+
+    wallets = subprocess.getoutput("lotus-miner actor control list")
+    wallet_balances = gather_wallet_balances(wallets)
+    write_wallet_balances_to_file(prom_file_path, miner_id, wallet_balances)
+
+    workers = subprocess.getoutput("lotus-miner sealing workers | grep Worker")
+    worker_metrics = gather_worker_metrics(workers)
+    write_worker_metrics_to_file(prom_file_path, miner_id, worker_metrics)
+
     os.rename(prom_file_path, f"{path_node_exporter}lotus.{miner_id}.prom")
 
 if __name__ == "__main__":
@@ -156,3 +209,4 @@ if __name__ == "__main__":
     
     config_file = sys.argv[1]
     main(config_file)
+
