@@ -108,13 +108,14 @@ def write_proving_window_to_file(path, miner_id, in_proving_window):
 
 def gather_balance_metrics(info):
     metrics = {}
-    metrics['precommit'] = float(info.split('PreCommit:')[1].split()[0])
-    metrics['pledge'] = float(info.split('Pledge:')[1].split()[0])
-    metrics['vesting'] = float(info.split('Vesting:')[1].split()[0])
-    metrics['market_locked'] = float(info.split('Locked:')[1].split()[0])
-    metrics['market_available'] = float(info.split('Available:')[2].split()[0])
-    metrics['miner_available'] = float(info.split('Available:')[1].split()[0])
+    metrics['precommit'] = float(info.split('PreCommit:')[1].split()[0] + ' ' + info.split('PreCommit:')[1].split()[1])
+    metrics['pledge'] = float(info.split('Pledge:')[1].split()[0] + ' ' + info.split('Pledge:')[1].split()[1])
+    metrics['vesting'] = float(info.split('Vesting:')[1].split()[0] + ' ' + info.split('Vesting:')[1].split()[1])
+    metrics['market_locked'] = float(info.split('Locked:')[1].split()[0] + ' ' + info.split('Locked:')[1].split()[1])
+    metrics['market_available'] = float(info.split('Available:')[2].split()[0] + ' ' + info.split('Available:')[2].split()[1])
+    metrics['miner_available'] = float(info.split('Available:')[1].split()[0] + ' ' + info.split('Available:')[1].split()[1])
 
+    
     for key, value in metrics.items():
         if value > 0 and info.split(f'{key.capitalize()}:')[1].split()[1] == "mFIL":
             metrics[key] /= 1000
