@@ -216,7 +216,7 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
             elif key == "PreCommitWait":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PCW"}} {metrics[key]}\n')
             elif key == "Total":
-                f.write(f'lotus_miner_sector_status_total{{miner="{miner_id}"}} {metrics["total"]}\n')
+                f.write(f'lotus_miner_sector_status_total{{miner="{miner_id}"}} {metrics["Total"]}\n')
             elif key == "ComputeProofFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="CP"}} {metrics[key]}\n')
             elif key == "AddPieceFailed":
@@ -244,7 +244,7 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
             elif key == "TerminateFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="TER"}} {metrics[key]}\n')
             elif key == "Removed":
-                f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["removed"]}\n')
+                f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["Removed"]}\n')
 
 def main(config_file):
     config = load_config(config_file)
