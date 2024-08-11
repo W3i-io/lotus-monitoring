@@ -215,35 +215,35 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="FIN"}} {metrics[key]}\n')
             elif key == "PreCommitWait":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PCW"}} {metrics[key]}\n')
-            elif key == "total":
+            elif key == "Total":
                 f.write(f'lotus_miner_sector_status_total{{miner="{miner_id}"}} {metrics["total"]}\n')
-            elif key == "computeprooffailed":
+            elif key == "ComputeProofFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="CP"}} {metrics[key]}\n')
-            elif key == "addpiecefailed":
+            elif key == "AddPieceFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="AP"}} {metrics[key]}\n')
-            elif key == "commitfailed":
+            elif key == "CommitFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="COM"}} {metrics[key]}\n')
-            elif key == "packingfailed":
+            elif key == "PackingFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="PCK"}} {metrics[key]}\n')
-            elif key == "sealprecommit1failed":
+            elif key == "SealPreCommit1Failed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="PC1"}} {metrics[key]}\n')
-            elif key == "sealprecommit2failed":
+            elif key == "SealPreCommit2Failed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="PC2"}} {metrics[key]}\n')
-            elif key == "commitfinalizedfailed":
+            elif key == "CommitFinalizedFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="CF"}} {metrics[key]}\n')
-            elif key == "precommitfailed":
+            elif key == "PreCommitFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="PC"}} {metrics[key]}\n')
-            elif key == "finalizedfailed":
+            elif key == "FinalizedFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="FIN"}} {metrics[key]}\n')
-            elif key == "failedunrecoverable":
+            elif key == "FailedUnrecoverable":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="UNR"}} {metrics[key]}\n')
-            elif key == "faultedfinal":
+            elif key == "Faultedfinal":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="FF"}} {metrics[key]}\n')
-            elif key == "removefailed":
+            elif key == "RemoveFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="RM"}} {metrics[key]}\n')
-            elif key == "terminatefailed":
+            elif key == "TerminateFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="TER"}} {metrics[key]}\n')
-            elif key == "removed":
+            elif key == "Removed":
                 f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["removed"]}\n')
 
 def main(config_file):
