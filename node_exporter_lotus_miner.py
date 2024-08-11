@@ -159,62 +159,61 @@ def write_worker_metrics_to_file(path, miner_id, worker_metrics):
 
 def parse_info_for_jobs(info):
     metrics = {
-        "computeprooffailed": 0,
-        "addpiecefailed": 0,
-        "commitfailed": 0,
-        "packingfailed": 0,
-        "sealprecommit1failed": 0,
-        "sealprecommit2failed": 0,
-        "commitfinalizedfailed": 0,
-        "precommitfailed": 0,
-        "finalizedfailed": 0,
-        "failedunrecoverable": 0,
-        "faultedfinal": 0,
-        "removefailed": 0,
-        "terminatefailed": 0,
-        "removed": 0,
-        "precommit1": 0,
-        "precommit2": 0,
-        "committing": 0,
-        "waitseed": 0,
-        "waitdeals": 0,
-        "addpiece": 0,
-        "submitcommitaggregate": 0,
-        "commitaggregatewait": 0,
-        "commitfinalize": 0,
-        "precommitwait": 0,
-        "total": 0
+        "ComputeProofFailed": 0,
+        "AddPieceFailed": 0,
+        "CommitFailed": 0,
+        "PackingFailed": 0,
+        "SealPreCommit1Failed": 0,
+        "SealPreCommit2Failed": 0,
+        "CommitFinalizedFailed": 0,
+        "PreCommitFailed": 0,
+        "FinalizedFailed": 0,
+        "FailedUnrecoverable": 0,
+        "FaultedFinal": 0,
+        "RemoveFailed": 0,
+        "TerminateFailed": 0,
+        "Removed": 0,
+        "PreCommit1": 0,
+        "PreCommit2": 0,
+        "Committing": 0,
+        "WaitSeed": 0,
+        "WaitDeals": 0,
+        "AddPiece": 0,
+        "SubmitCommitAggregate": 0,
+        "CommitAggregateWait": 0,
+        "CommitFinalize": 0,
+        "PreCommitWait": 0,
+        "Total": 0
     }
 
     for key in metrics:
-        if f"{key.capitalize()}:" in info:
-            metrics[key] = int(info.split(f"{key.capitalize()}:")[1].split()[0])
+        if f"{key}:" in info:
+            metrics[key] = int(info.split(f"{key}:")[1].split()[0])
 
     return metrics
 
 def write_jobs_metrics_to_file(path, miner_id, metrics):
     with open(path, 'a') as f:
-        
         for key in metrics:
-            if key == "precommit1":
+            if key == "PreCommit1":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PC1"}} {metrics[key]}\n')
-            elif key == "precommit2":
+            elif key == "PreCommit2":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PC2"}} {metrics[key]}\n')
-            elif key == "committing":
+            elif key == "Committing":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="C2"}} {metrics[key]}\n')
-            elif key == "waitseed":
+            elif key == "WaitSeed":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="WS"}} {metrics[key]}\n')
-            elif key == "waitdeals":
+            elif key == "WaitDeals":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="WD"}} {metrics[key]}\n')
-            elif key == "addpiece":
+            elif key == "AddPiece":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="AP"}} {metrics[key]}\n')
-            elif key == "submitcommitaggregate":
+            elif key == "SubmitCommitAggregate":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="SCA"}} {metrics[key]}\n')
-            elif key == "commitaggregatewait":
+            elif key == "CommitAggregateWait":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="CAW"}} {metrics[key]}\n')
-            elif key == "commitfinalize":
+            elif key == "CommitFinalize":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="FIN"}} {metrics[key]}\n')
-            elif key == "precommitwait":
+            elif key == "PreCommitWait":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PCW"}} {metrics[key]}\n')
             elif key == "total":
                 f.write(f'lotus_miner_sector_status_total{{miner="{miner_id}"}} {metrics["total"]}\n')
