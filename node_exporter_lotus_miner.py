@@ -27,15 +27,15 @@ def parse_log_for_metrics(log):
 
 def write_metrics_to_file(path, miner_id, metrics):
     with open(path, 'w') as f:
-        f.write(f'# HELP lotus miner QAP\n')
+        f.write(f'# HELP lotus_miner_qap lotus miner QAP\n')
         f.write(f'lotus_miner_qap{{miner="{miner_id}"}} {metrics["miner_qap"]}\n')
-        f.write(f'# HELP Filecoin network QAP\n')
+        f.write(f'# HELP lotus_network_qap Filecoin network QAP\n')
         f.write(f'lotus_network_qap{{miner="{miner_id}"}} {metrics["network_qap"]}\n')
-        f.write(f'# HELP lotus miner current epoch\n')
+        f.write(f'# HELP lotus_miner_base_epoch lotus miner current epoch\n')
         f.write(f'lotus_miner_base_epoch{{miner="{miner_id}"}} {metrics["base_epoch"]}\n')
-        f.write(f'# HELP lotus miner current time delta to network epoch\n')
+        f.write(f'# HELP lotus_miner_base_delta lotus miner current time delta to network epoch\n')
         f.write(f'lotus_miner_base_delta{{miner="{miner_id}"}} {metrics["base_delta"]}\n')
-        f.write(f'# HELP lotus miner eligibility to mining on the filecoin network\n')
+        f.write(f'# HELP lotus_miner_eligible lotus miner eligibility to mining on the filecoin network\n')
         f.write(f'lotus_miner_eligible{{miner="{miner_id}"}} {1 if metrics["eligible"] else 0}\n')
 
 def gather_disk_metrics(disk_paths, disk_labels):
@@ -48,7 +48,7 @@ def gather_disk_metrics(disk_paths, disk_labels):
 def append_disk_metrics_to_file(path, miner_id, disk_metrics):
     with open(path, 'a') as f:
         for label, data in disk_metrics.items():
-            f.write(f'# HELP disk metrics for {label}\n')
+            f.write(f'# HELP lotus_miner_{label} disk metrics for {label}\n')
             f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
 
 def process_deadlines(file_path):
@@ -66,9 +66,9 @@ def process_deadlines(file_path):
 
 def write_deadlines_to_file(path, miner_id, active_sectors, faulty_sectors):
     with open(path, 'a') as f:
-        f.write(f'# HELP number of active sectors\n')
+        f.write(f'# HELP lotus_miner_active_sectors number of active sectors\n')
         f.write(f'lotus_miner_active_sectors{{miner="{miner_id}"}} {active_sectors}\n')
-        f.write(f'# HELP number of faulty sectors\n')
+        f.write(f'# HELP lotus_miner_faulty_sectors number of faulty sectors\n')
         f.write(f'lotus_miner_faulty_sectors{{miner="{miner_id}"}} {faulty_sectors}\n')
 
 def currency_divider(value, currency):
@@ -113,9 +113,9 @@ def calculate_storage_metrics(storage_file):
 
 def write_storage_metrics_to_file(path, miner_id, metric_name, used_storage, storage_space):
     with open(path, 'a') as f:
-        f.write(f'# HELP {metric_name} total available space\n')
+        f.write(f'# HELP lotus_miner_{metric_name}_space {metric_name} total available space\n')
         f.write(f'lotus_miner_{metric_name}_space{{miner="{miner_id}"}} {storage_space}\n')
-        f.write(f'# HELP {metric_name} total used space\n')
+        f.write(f'# HELP lotus_miner_{metric_name}_used {metric_name} total used space\n')
         f.write(f'lotus_miner_{metric_name}_used{{miner="{miner_id}"}} {used_storage}\n')
 
 def process_proving_window(proving_info):
@@ -124,7 +124,7 @@ def process_proving_window(proving_info):
 
 def write_proving_window_to_file(path, miner_id, in_proving_window):
     with open(path, 'a') as f:
-        f.write(f'# HELP is the miner within a proving window\n')
+        f.write(f'# HELP lotus_miner_proving_window is the miner within a proving window\n')
         f.write(f'lotus_miner_proving_window{{miner="{miner_id}"}} {1 if in_proving_window else 0}\n')
 
 def gather_balance_metrics(info):
@@ -141,7 +141,7 @@ def gather_balance_metrics(info):
 def write_balance_metrics_to_file(path, miner_id, metrics):
     with open(path, 'a') as f:
         for key, value in metrics.items():
-            f.write(f'# HELP miner {key} balance\n')
+            f.write(f'# HELP lotus_miner_{key}_balance miner {key} balance\n')
             f.write(f'lotus_miner_{key}_balance{{miner="{miner_id}"}} {value}\n')
 
 def gather_wallet_balances(wallets):
@@ -168,7 +168,7 @@ def gather_worker_metrics(workers):
 def write_worker_metrics_to_file(path, miner_id, worker_metrics):
     with open(path, 'a') as f:
         for label, count in worker_metrics.items():
-            f.write(f'# HELP {label} sealing job metrics\n')
+            f.write(f'# HELP lotus_miner_sealing_{label} {label} sealing job metrics\n')
             f.write(f'lotus_miner_sealing_{label}{{miner="{miner_id}"}} {count}\n')
 
 def parse_info_for_jobs(info):
@@ -208,7 +208,7 @@ def parse_info_for_jobs(info):
 
 def write_jobs_metrics_to_file(path, miner_id, metrics):
     with open(path, 'a') as f:
-        f.write(f'# HELP lotus miner sector failures\n')
+        f.write(f'# HELP lotus_miner_sector_error lotus miner sector failures\n')
         for key in metrics:
             if key == "ComputeProofFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="CP"}} {metrics[key]}\n')
@@ -237,10 +237,10 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
             elif key == "TerminateFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="TER"}} {metrics[key]}\n')
             elif key == "Removed":
-                f.write(f'# HELP total removed sectors\n')
+                f.write(f'# HELP lotus_miner_sector_status_removed total removed sectors\n')
                 f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["Removed"]}\n')
 
-        f.write(f'# HELP lotus miner sector status\n')
+        f.write(f'# HELP lotus_miner_sector_status lotus miner sector status\n')
         for key in metrics:
             if key == "PreCommit1":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PC1"}} {metrics[key]}\n')
@@ -263,7 +263,7 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
             elif key == "PreCommitWait":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PCW"}} {metrics[key]}\n')
             elif key == "Total":
-                f.write(f'# HELP Number of Total jobs\n')
+                f.write(f'# HELP lotus_miner_sector_status_total Number of Total jobs\n')
                 f.write(f'lotus_miner_sector_status_total{{miner="{miner_id}"}} {metrics["Total"]}\n')
             
 
