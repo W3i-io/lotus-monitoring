@@ -124,7 +124,7 @@ def process_proving_window(proving_info):
 
 def write_proving_window_to_file(path, miner_id, in_proving_window):
     with open(path, 'a') as f:
-        f.write(f'# HELP is the miner within a proving window?\n')
+        f.write(f'# HELP is the miner within a proving window\n')
         f.write(f'lotus_miner_proving_window{{miner="{miner_id}"}} {1 if in_proving_window else 0}\n')
 
 def gather_balance_metrics(info):
