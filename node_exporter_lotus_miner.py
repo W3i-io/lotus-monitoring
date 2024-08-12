@@ -47,9 +47,9 @@ def gather_disk_metrics(disk_paths, disk_labels):
 
 def append_disk_metrics_to_file(path, miner_id, disk_metrics):
     with open(path, 'a') as f:
+        f.write(f'# HELP lotus_miner_data_disks data disk metrics\n')
         for label, data in disk_metrics.items():
-            f.write(f'# HELP lotus_miner_{label} disk metrics for {label}\n')
-            f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {data}\n')
+            f.write(f'lotus_miner_data_disks{{miner="{miner_id},label={label}"}} {data}\n')
 
 def process_deadlines(file_path):
     total_active_sectors = 0
