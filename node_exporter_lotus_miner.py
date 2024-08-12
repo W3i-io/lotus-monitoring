@@ -49,7 +49,7 @@ def append_disk_metrics_to_file(path, miner_id, disk_metrics):
     with open(path, 'a') as f:
         f.write(f'# HELP lotus_miner_data_disks data disk metrics\n')
         for label, data in disk_metrics.items():
-            f.write(f'lotus_miner_data_disks{{miner="{miner_id},label={label}"}} {data}\n')
+            f.write(f'lotus_miner_data_disks{{miner="{miner_id}",label="{label}"}} {data}\n')
 
 def process_deadlines(file_path):
     total_active_sectors = 0
@@ -140,9 +140,9 @@ def gather_balance_metrics(info):
 
 def write_balance_metrics_to_file(path, miner_id, metrics):
     with open(path, 'a') as f:
+        f.write(f'# HELP lotus_miner_balances miner balances\n')
         for key, value in metrics.items():
-            f.write(f'# HELP lotus_miner_{key}_balance miner {key} balance\n')
-            f.write(f'lotus_miner_{key}_balance{{miner="{miner_id}"}} {value}\n')
+            f.write(f'lotus_miner_balances{{miner="{miner_id}",wallet="{key}"}} {value}\n')
 
 def gather_wallet_balances(wallets):
     return {
@@ -153,9 +153,9 @@ def gather_wallet_balances(wallets):
 
 def write_wallet_balances_to_file(path, miner_id, wallet_balances):
     with open(path, 'a') as f:
+        f.write(f'# HELP lotus_miner_wallet_balances wallet balances\n')
         for label, balance in wallet_balances.items():
-            f.write(f'# HELP wallet {label} balance\n')
-            f.write(f'lotus_miner_{label}{{miner="{miner_id}"}} {balance}\n')
+            f.write(f'lotus_miner_wallet_balances{{miner="{miner_id}",wallet="{label}"}} {balance}\n')
 
 def gather_worker_metrics(workers):
     return {
