@@ -208,7 +208,7 @@ def parse_info_for_jobs(info):
 
 def write_jobs_metrics_to_file(path, miner_id, metrics):
     with open(path, 'a') as f:
-        f.write(f'# HELP lotus miner sector error\n')
+        f.write(f'# HELP lotus miner sector failures\n')
         for key in metrics:
             if key == "ComputeProofFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="CP"}} {metrics[key]}\n')
@@ -239,7 +239,7 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
             elif key == "Removed":
                 f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["Removed"]}\n')
 
-        f.write(f'# HELP lotus miner sector error\n')
+        f.write(f'# HELP lotus miner sector status\n')
         for key in metrics:
             if key == "PreCommit1":
                 f.write(f'lotus_miner_sector_status{{miner="{miner_id}",status="PC1"}} {metrics[key]}\n')
