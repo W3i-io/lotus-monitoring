@@ -237,6 +237,7 @@ def write_jobs_metrics_to_file(path, miner_id, metrics):
             elif key == "TerminateFailed":
                 f.write(f'lotus_miner_sector_error{{miner="{miner_id}",status="TER"}} {metrics[key]}\n')
             elif key == "Removed":
+                f.write(f'# HELP total removed sectors\n')
                 f.write(f'lotus_miner_sector_status_removed{{miner="{miner_id}"}} {metrics["Removed"]}\n')
 
         f.write(f'# HELP lotus miner sector status\n')
